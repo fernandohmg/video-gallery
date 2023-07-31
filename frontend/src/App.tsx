@@ -1,7 +1,8 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Popconfirm, notification } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { notification } from "antd";
 import React from "react";
 import { VideoFormModal } from "./VideoFormModal";
+import { VideoGrid } from "./VideoGrid";
 import { VideoPage } from "./VideoPage";
 import { api } from "./api";
 
@@ -85,61 +86,29 @@ function App() {
         {openVideo ? (
           <VideoPage video={openVideo} handleGoBack={handleGoBack} />
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
-              {videos?.map((video) => (
-                <div key={video.id} className="max-w-[480px] flex flex-col">
-                  <button type="button" onClick={() => setOpenVideo(video)}>
-                    <img
-                      src={`https://img.youtube.com/vi/${video.youtubeVideoId}/0.jpg`}
-                      alt={video.name}
-                    />
-                  </button>
-                  <div className="flex items-start p-2">
-                    <p className="flex-1">{video.name}</p>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button
-                        className="w-6 h-6 flex justify-center items-center text-lg hover:scale-125 duration-300"
-                        onClick={() => handleEdit(video)}
-                      >
-                        <EditOutlined aria-hidden />
-                        <span className="sr-only">Edit</span>
-                      </button>
-                      <Popconfirm
-                        title="Delete the video"
-                        description="Are you sure to delete this video?"
-                        onConfirm={() => handleDelete(video.id)}
-                        okText="Delete"
-                        cancelText="Cancel"
-                      >
-                        <button className="w-6 h-6 flex justify-center items-center text-lg hover:text-red-500 hover:scale-125 duration-300">
-                          <DeleteOutlined aria-hidden />
-                          <span className="sr-only">Delete</span>
-                        </button>
-                      </Popconfirm>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="fixed bottom-3 right-3">
-              <button
-                type="button"
-                className="p-3 rounded-full w-14 h-14 bg-blue-500 flex justify-center items-center text-white text-2xl"
-                onClick={showModal}
-              >
-                <PlusOutlined aria-hidden />
-                <span className="sr-only">Add video</span>
-              </button>
-            </div>
-            <VideoFormModal
-              key={selectedVideo?.id}
-              isModalOpen={isModalOpen}
-              handleClose={handleClose}
-              formData={selectedVideo}
-            />
-          </>
+          <VideoGrid
+            videos={videos}
+            setOpenVideo={setOpenVideo}
+            handleDelete={handleDelete}
+            handleEdit={handleEdit}
+          />
         )}
+        <div className="fixed bottom-3 right-3">
+          <button
+            type="button"
+            className="p-3 rounded-full w-14 h-14 bg-blue-500 flex justify-center items-center text-white text-2xl"
+            onClick={showModal}
+          >
+            <PlusOutlined aria-hidden />
+            <span className="sr-only">Add video</span>
+          </button>
+        </div>
+        <VideoFormModal
+          key={selectedVideo?.id}
+          isModalOpen={isModalOpen}
+          handleClose={handleClose}
+          formData={selectedVideo}
+        />
       </main>
     </>
   );

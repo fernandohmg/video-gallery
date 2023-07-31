@@ -47,7 +47,7 @@ export const VideoFormModal = ({
           message: "Video updated",
           description: "Video has been updated successfully",
         });
-        handleClose();
+        handleCloseClick();
         return;
       }
       await api.post("/video", data);
@@ -55,7 +55,7 @@ export const VideoFormModal = ({
         message: "Video added",
         description: "Video has been added successfully",
       });
-      reset();
+      handleCloseClick();
     } catch (error) {
       notificationApi.error({
         message: "Error",
@@ -64,7 +64,7 @@ export const VideoFormModal = ({
     }
   };
 
-  const handleCancelClick = () => {
+  const handleCloseClick = () => {
     handleClose();
     reset();
   };
@@ -73,9 +73,9 @@ export const VideoFormModal = ({
     <Modal
       centered
       open={isModalOpen}
-      onCancel={handleCancelClick}
+      onCancel={handleCloseClick}
       footer={[
-        <Button key="back" onClick={handleCancelClick}>
+        <Button key="back" onClick={handleCloseClick}>
           Cancel
         </Button>,
         <Button
