@@ -93,16 +93,19 @@ function App() {
             handleEdit={handleEdit}
           />
         )}
-        <div className="fixed bottom-3 right-3">
-          <button
-            type="button"
-            className="p-3 rounded-full w-14 h-14 bg-blue-500 flex justify-center items-center text-white text-2xl"
-            onClick={showModal}
-          >
-            <PlusOutlined aria-hidden />
-            <span className="sr-only">Add video</span>
-          </button>
-        </div>
+        {!openVideo && (
+          <div className="fixed bottom-3 right-3">
+            <button
+              type="button"
+              className="p-3 rounded-full w-14 h-14 bg-blue-500 flex justify-center items-center text-white text-2xl"
+              onClick={showModal}
+            >
+              <PlusOutlined aria-hidden />
+              <span className="sr-only">Add video</span>
+            </button>
+          </div>
+        )}
+
         <VideoFormModal
           key={selectedVideo?.id}
           isModalOpen={isModalOpen}
