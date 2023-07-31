@@ -1,5 +1,5 @@
-import { Button, Input, Modal, notification } from "antd";
-import Title from "antd/es/typography/Title";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Input, Modal, Popconfirm, notification } from "antd";
 import React from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { api } from "./api";
@@ -19,6 +19,7 @@ const getYouTubeVideoId = (url: string) => {
 function App() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [videos, setVideos] = React.useState<Video[]>();
+  const [selectedVideo, setSelectedVideo] = React.useState<Video | null>(null);
 
   React.useEffect(() => {
     const fetchVideos = async () => {
@@ -40,33 +41,92 @@ function App() {
     setIsModalOpen(true);
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setIsModalOpen(false);
+    setSelectedVideo(null);
+  };
+
+  const handleEdit = (video: Video) => {
+    setSelectedVideo(video);
+    showModal();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!id) return;
+    try {
+      await api.delete(`/video/${id}`);
+      notification.success({
+        message: "Video deleted",
+        description: "Video has been deleted successfully",
+      });
+      setVideos((prevVideos) => prevVideos?.filter((video) => video.id !== id));
+    } catch (error) {
+      notification.error({
+        message: "Error",
+        description: "Something went wrong",
+      });
+    }
   };
 
   return (
     <>
-      <header>
-        <Title>Youtube Video Gallery</Title>
+      <header className="max-w-6xl mx-auto">
+        <h1 className="text-2xl sm:text-4xl my-5 text-center">
+          Youtube Video Gallery
+        </h1>
       </header>
-      <main>
-        <div className="grid grid-cols-3 gap-4">
+      <main className="relative px-2 max-w-6xl mx-auto h-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
           {videos?.map((video) => (
             <div key={video.id}>
               <img
                 src={`https://img.youtube.com/vi/${video.youtubeVideoId}/0.jpg`}
-                alt=""
+                alt={video.name}
               />
-              <p>{video.name}</p>
+              <div className="flex items-start p-2">
+                <p className="flex-1">{video.name}</p>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    className="w-6 h-6 flex justify-center items-center text-lg hover:scale-125 duration-300"
+                    onClick={() => handleEdit(video)}
+                  >
+                    <EditOutlined aria-hidden />
+                    <span className="sr-only">Edit</span>
+                  </button>
+                  <Popconfirm
+                    title="Delete the video"
+                    description="Are you sure to delete this video?"
+                    onConfirm={() => handleDelete(video.id)}
+                    okText="Delete"
+                    cancelText="Cancel"
+                  >
+                    <button className="w-6 h-6 flex justify-center items-center text-lg hover:text-red-500 hover:scale-125 duration-300">
+                      <DeleteOutlined aria-hidden />
+                      <span className="sr-only">Delete</span>
+                    </button>
+                  </Popconfirm>
+                </div>
+              </div>
             </div>
           ))}
         </div>
-        <Button type="primary" onClick={showModal}>
-          Add video
-        </Button>
+        <div className="fixed bottom-3 right-3">
+          <button
+            type="button"
+            className="p-3 rounded-full w-14 h-14 bg-blue-500 flex justify-center items-center text-white text-2xl"
+            onClick={showModal}
+          >
+            <PlusOutlined aria-hidden />
+            <span className="sr-only">Add video</span>
+          </button>
+        </div>
       </main>
-      <VideoFormModal isModalOpen={isModalOpen} handleCancel={handleCancel} />
-      <footer>Footer</footer>
+      <VideoFormModal
+        key={selectedVideo?.id}
+        isModalOpen={isModalOpen}
+        handleClose={handleClose}
+        formData={selectedVideo}
+      />
     </>
   );
 }
@@ -78,10 +138,12 @@ type FormData = {
 
 function VideoFormModal({
   isModalOpen,
-  handleCancel,
+  handleClose,
+  formData,
 }: {
   isModalOpen: boolean;
-  handleCancel: () => void;
+  handleClose: () => void;
+  formData?: Video | null;
 }) {
   const [notificationApi, contextHolder] = notification.useNotification();
 
@@ -90,10 +152,24 @@ function VideoFormModal({
     handleSubmit,
     formState: { isSubmitting, errors },
     reset,
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    defaultValues: {
+      name: formData?.name || "",
+      url: formData?.url || "",
+    },
+  });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
+      if (formData?.id) {
+        await api.patch(`/video/${formData.id}`, data);
+        notificationApi.success({
+          message: "Video updated",
+          description: "Video has been updated successfully",
+        });
+        handleClose();
+        return;
+      }
       await api.post("/video", data);
       notificationApi.success({
         message: "Video added",
@@ -109,12 +185,13 @@ function VideoFormModal({
   };
 
   const handleCancelClick = () => {
-    handleCancel();
+    handleClose();
     reset();
   };
 
   return (
     <Modal
+      centered
       open={isModalOpen}
       onCancel={handleCancelClick}
       footer={[
@@ -128,7 +205,7 @@ function VideoFormModal({
           form="video-form"
           loading={isSubmitting}
         >
-          Submit
+          Save
         </Button>,
       ]}
     >
@@ -137,7 +214,7 @@ function VideoFormModal({
         <form id="video-form" onSubmit={handleSubmit(onSubmit)}>
           <fieldset>
             <legend>
-              <Title level={2}>Add YouTube video</Title>
+              <h2 className="text-lg mb-3">Add YouTube video</h2>
             </legend>
           </fieldset>
           <div className="space-y-2">

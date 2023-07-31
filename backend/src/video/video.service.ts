@@ -25,10 +25,10 @@ export class VideoService {
   }
 
   update(id: number, updateVideoDto: UpdateVideoDto) {
-    return `This action updates a #${id} video`;
+    return this.videoRepository.update(id, updateVideoDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} video`;
+    return this.videoRepository.delete(id);
   }
 }
